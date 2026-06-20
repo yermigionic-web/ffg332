@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<title>F.F.G. // NAVAL DOSSIER</title>
+
+<!-- =========================================================================
+     외부 폰트 (한국어/영어 모두 메탈릭·해군 스타일로 보이도록 구성)
+     Chakra Petch  : 영문 디스플레이 / 군용·기계 느낌
+     Orbitron      : 숫자/계급/HUD
+     Black Han Sans: 한글 디스플레이(로고·헤드라인)
+     Gothic A1     : 한/영 본문
+     Noto Serif KR : 세계관 문서 본문(다큐 느낌)
+     ========================================================================= -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Orbitron:wght@500;700;900&family=Gothic+A1:wght@300;400;500;700;900&family=Black+Han+Sans&family=Noto+Serif+KR:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+/* =========================================================================
+   0. 디자인 토큰
+   메인: navy + 흰색 + 포인트 silver / sleek·metallic·grunge·ocean(은은)
+   ========================================================================= */
+:root{
+  --abyss:   #050a14;
+  --navy-d:  #0a1322;
+  --navy:    #0f1d33;
+  --navy-l:  #16294a;
+  --steel:   #1d3b5e;
+  --ocean:   #244b5c;     /* 은은한 바다 톤 */
+  --silver:  #c4cdda;
+  --silver-l:#e9eef5;
+  --silver-d:#8794a8;
+  --chrome:  #f6f9fd;
+  --line:    rgba(196,205,218,.18);
+  --flare:   #fff7e6;     /* 렌즈 플레어 */
+  --glitch-c:#34e0ff;
+  --glitch-m:#ff3b6b;
+
+  --metal: linear-gradient(135deg,#7d899c 0%,#e9eef5 18%,#9aa6b8 38%,#f6f9fd 52%,#8794a8 72%,#dfe6ef 88%,#7d899c 100%);
+  --metal-soft: linear-gradient(180deg,#dfe6ef,#9aa6b8 55%,#6f7d92);
+
+  --ff-disp:'Chakra Petch','Gothic A1',sans-serif;
+  --ff-kr:'Black Han Sans','Chakra Petch',sans-serif;
+  --ff-body:'Gothic A1','Chakra Petch',sans-serif;
+  --ff-num:'Orbitron','Chakra Petch',sans-serif;
+  --ff-doc:'Noto Serif KR',serif;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;}
+body{
+  font-family:var(--ff-body);
+  background:var(--abyss);
+  color:var(--silver-l);
+  overflow:hidden;
+  position:relative;
+  -webkit-font-smoothing:antialiased;
+}
+.app{
+  position:fixed; inset:0;
+  /* PC에서도 모바일 폭 프레임으로 중앙 정렬, 모바일은 풀스크린 */
+  display:flex; align-items:center; justify-content:center;
+  background:
+    radial-gradient(120% 80% at 50% -10%, #16294a 0%, var(--navy-d) 46%, var(--abyss) 100%);
+}
+.frame{
+  position:relative;
+  width:100%; max-width:480px; height:100%; max-height:1000px;
+  overflow:hidden;
+  background:linear-gradient(180deg,var(--navy-d),var(--abyss));
+  box-shadow:0 0 0 1px var(--line), 0 30px 90px rgba(0,0,0,.6);
+}
+@media(min-width:500px){ .frame{ border-radius:18px; height:94%; } }
+
+/* ---- 공통 그래픽: 그레인(grunge) ---- */
+.grain::after{
+  content:""; position:absolute; inset:0; pointer-events:none; z-index:60; opacity:.05;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  mix-blend-mode:overlay;
+}
+/* ---- 공통 그래픽: 스캔라인 ---- */
+.scan::before{
+  content:""; position:absolute; inset:0; pointer-events:none; z-index:59; opacity:.5;
+  background:repeating-linear-gradient(180deg,rgba(0,0,0,0) 0 2px,rgba(0,0,0,.10) 2px 3px);
+}
+/* ---- 공통: 은은한 바다 흐름 ---- */
+.ocean-glow{
+  position:absolute; inset:0; pointer-events:none; z-index:0; opacity:.5;
+  background:
+    radial-gradient(60% 40% at 20% 100%, rgba(36,75,92,.55), transparent 70%),
+    radial-gradient(50% 35% at 90% 110%, rgba(29,59,94,.5), transparent 70%);
+  animation:tide 12s ease-in-out infinite alternate;
+}
+@keyframes tide{ from{transform:translateY(8px)} to{transform:translateY(-8px)} }
+
+/* 화면 전환 */
+.screen{
+  position:absolute; inset:0; z-index:1;
+  opacity:0; visibility:hidden; transform:scale(1.01);
+  pointer-events:none;   /* ★ 비활성 화면은 탭/클릭을 가로채지 않음 (겹침 버그 방지) */
+  transition:opacity .6s ease, transform .6s ease, visibility .6s;
+}
+.screen.active{ opacity:1; visibility:visible; transform:none; pointer-events:auto; }
+
+/* 스크롤 가능한 화면 */
+.scrollable{ overflow-y:auto; -webkit-overflow-scrolling:touch; }
+.scrollable::-webkit-scrollbar{ width:5px; }
+.scrollable::-webkit-scrollbar-thumb{ background:var(--steel); border-radius:3px; }
+
+/* 메탈 텍스트 */
+.metal-text{
+  background:var(--metal); -webkit-background-clip:text; background-clip:text;
+  -webkit-text-fill-color:transparent; color:transparent;
+}
+
+/* HUD 코너 장식 */
+.hud-corners::before,.hud-corners::after{
+  content:""; position:absolute; width:26px; height:26px; pointer-events:none; z-index:5;
+  border:1px solid var(--silver-d); opacity:.5;
+}
+.hud-corners::before{ top:14px; left:14px; border-right:0; border-bottom:0; }
+.hud-corners::after{ bottom:14px; right:14px; border-left:0; border-top:0; }
+
+/* =========================================================================
+   [1] 메인 화면
+   ========================================================================= */
+#scr-main{ display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; }
+.main-bg{
+  position:absolute; inset:0; z-index:0;
+  background:
+    radial-gradient(80% 60% at 50% 38%, rgba(36,75,92,.35), transparent 62%),
+    linear-gradient(180deg,var(--navy-d),var(--abyss));
+}
+/* 글리치 패턴(전체) — 미세한 RGB 라인 노이즈 */
+.glitch-field{
+  position:absolute; inset:0; z-index:1; pointer-events:none; opacity:.28; mix-blend-mode:screen;
+  background:
+    repeating-linear-gradient(90deg, rgba(52,224,255,.05) 0 2px, transparent 2px 5px),
+    repeating-linear-gradient(0deg, rgba(255,59,107,.04) 0 1px, transparent 1px 4px);
+  animation:fieldShift 5.5s steps(20) infinite;
+}
+@keyframes fieldShift{ 0%{transform:translate(0,0)} 50%{transform:translate(-3px,2px)} 100%{transform:translate(2px,-2px)} }
+
+.main-inner{ position:relative; z-index:3; text-align:center; padding:0 24px; }
+.logo-wrap{ position:relative; display:inline-block; }
+.logo-wrap::before{ /* 로고 뒤 메탈 후광 */
+  content:""; position:absolute; inset:-40px; z-index:-1;
+  background:radial-gradient(closest-side, rgba(233,238,245,.18), transparent 75%);
+  filter:blur(4px);
+}
+/* ※ 로고 이미지: 사용자가 제공한 링크 사용. 교체 시 src만 수정 */
+.logo-img{
+  width:min(64vw,260px); height:auto; display:block; margin:0 auto;
+  filter:drop-shadow(0 6px 18px rgba(0,0,0,.55));
+  animation:logoBreath 4s ease-in-out infinite;
+}
+@keyframes logoBreath{ 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+/* 로고 글리치(가끔 흔들림) */
+.logo-img.gl{ animation:logoBreath 4s ease-in-out infinite, logoGlitch 6s steps(2) infinite; }
+@keyframes logoGlitch{
+  0%,92%,100%{filter:drop-shadow(0 6px 18px rgba(0,0,0,.55));}
+  93%{filter:drop-shadow(2px 0 0 var(--glitch-c)) drop-shadow(-2px 0 0 var(--glitch-m));}
+  95%{transform:translate(2px,-6px);}
+  97%{filter:drop-shadow(-3px 0 0 var(--glitch-c)) drop-shadow(3px 0 0 var(--glitch-m));}
+}
+
+.logo-fallback{
+  display:none; font-family:var(--ff-disp); font-weight:700; letter-spacing:.18em;
+  font-size:clamp(40px,12vw,72px); line-height:1;
+  background:var(--metal); -webkit-background-clip:text; background-clip:text;
+  -webkit-text-fill-color:transparent; color:transparent;
+  filter:drop-shadow(0 6px 18px rgba(0,0,0,.55)); animation:logoBreath 4s ease-in-out infinite;
+}
+.tagline{
+  margin-top:18px; font-family:var(--ff-disp); letter-spacing:.42em; text-indent:.42em;
+  font-size:11px; color:var(--silver-d); text-transform:uppercase;
+}
+.start-btn{
+  margin-top:26px; display:inline-flex; align-items:center; gap:10px;
+  font-family:var(--ff-disp); font-weight:600; letter-spacing:.28em; text-indent:.28em;
+  font-size:13px; color:var(--silver-l);
+  padding:12px 26px; border:1px solid var(--silver-d);
+  background:linear-gradient(180deg,rgba(233,238,245,.08),rgba(15,29,51,.4));
+  position:relative; animation:startPulse 2.4s ease-in-out infinite;
+}
+.start-btn::before{ content:"▸"; color:var(--glitch-c); }
+@keyframes startPulse{ 0%,100%{opacity:.6; box-shadow:0 0 0 0 rgba(196,205,218,.12)} 50%{opacity:1; box-shadow:0 0 22px -6px rgba(196,205,218,.5)} }
+
+/* 시작 시 1회 화면 깜빡임 */
+.flash{
+  position:absolute; inset:0; z-index:80; background:#fff; opacity:0; pointer-events:none;
+}
+.flash.go{ animation:flashOnce 1.00s ease-out forwards; }
+@keyframes flashOnce{
+  0%{opacity:0} 8%{opacity:.95} 18%{opacity:.1} 26%{opacity:.7}
+  40%{opacity:0} 60%{opacity:.35} 100%{opacity:0}
+}
+
+/* =========================================================================
+   [2] 쇼트 애니메이션
+   ========================================================================= */
+#scr-anim{ background:#000; cursor:pointer; }
+.anim-stage{ position:absolute; inset:0; overflow:hidden; }
+/* 이미지 프레임 자리표시자(2겹 크로스페이드) */
+.anim-frame{
+  position:absolute; inset:0; opacity:0; transition:opacity .5s ease;
+  display:flex; align-items:center; justify-content:center;
+  background:linear-gradient(135deg,var(--navy),var(--abyss));
+}
+.anim-frame.show{ opacity:1; }
+/* ※ 실제 이미지 17장은 JS가 frame.style.backgroundImage 로 주입.
+   github 업로드 후 ANIM_IMAGES 배열에 URL만 넣으면 됨(아래 스크립트 참조). */
+.anim-placeholder{
+  font-family:var(--ff-num); color:var(--silver-d); letter-spacing:.2em;
+  font-size:13px; text-align:center; opacity:.5;
+  border:1px dashed var(--line); padding:30px 26px;
+}
+.anim-placeholder b{ display:block; font-size:34px; color:var(--silver); margin-bottom:8px; }
+
+/* 가사 */
+.anim-lyric{
+  position:absolute; left:0; right:0; bottom:14%; z-index:10;
+  text-align:center; padding:0 28px;
+  font-family:var(--ff-kr); font-size:clamp(20px,6vw,30px); line-height:1.35;
+  color:var(--chrome); letter-spacing:.02em;
+  text-shadow:0 2px 18px rgba(0,0,0,.85), 0 0 30px rgba(36,75,92,.6);
+}
+.anim-lyric .ln{ display:inline-block; animation:lyricIn .55s ease both; }
+@keyframes lyricIn{ from{opacity:0; transform:translateY(14px); filter:blur(4px)} to{opacity:1; transform:none; filter:none} }
+
+/* 진행 바 */
+.anim-prog{ position:absolute; top:0; left:0; height:3px; z-index:12; background:var(--metal); width:0; }
+
+/* 스킵 안내 */
+.skip-hint{
+  position:absolute; top:16px; right:16px; z-index:12;
+  font-family:var(--ff-disp); font-size:10px; letter-spacing:.25em; color:var(--silver-d);
+  border:1px solid var(--line); padding:6px 10px; opacity:.7;
+}
+/* 스킵 오버레이 */
+.skip-modal{
+  position:absolute; inset:0; z-index:40; display:none;
+  align-items:center; justify-content:center; flex-direction:column; gap:18px;
+  background:rgba(5,10,20,.82); backdrop-filter:blur(6px);
+}
+.skip-modal.on{ display:flex; }
+.skip-modal h3{ font-family:var(--ff-kr); font-size:20px; color:var(--silver-l); letter-spacing:.04em; }
+.skip-modal .row{ display:flex; gap:14px; }
+.mbtn{
+  font-family:var(--ff-disp); font-weight:600; letter-spacing:.16em; font-size:13px;
+  color:var(--silver-l); padding:12px 22px; border:1px solid var(--silver-d);
+  background:linear-gradient(180deg,rgba(233,238,245,.08),rgba(15,29,51,.5)); cursor:pointer;
+  transition:.2s;
+}
+.mbtn:hover{ background:var(--steel); border-color:var(--silver); }
+.mbtn.alt{ border-color:var(--glitch-m); color:#ffd6e0; }
+
+/* =========================================================================
+   [3] 선택지 세션
+   ========================================================================= */
+#scr-choice{}
+.choice-bg{
+  position:absolute; inset:0; z-index:0;
+  background-size:cover; background-position:center;
+  /* blur 효과 (요구: blur 10%) */
+  filter:blur(10px) saturate(.9) brightness(.7);
+  transform:scale(1.08);
+  transition:opacity .5s ease;
+  background-color:var(--navy);
+}
+/* 이미지 없을 때 보이는 자리표시 패턴 */
+.choice-bg.ph{
+  background-image:
+    linear-gradient(135deg,rgba(36,75,92,.7),rgba(10,19,34,.95)),
+    repeating-linear-gradient(45deg,rgba(196,205,218,.05) 0 14px,transparent 14px 28px);
+}
+.choice-scrim{ position:absolute; inset:0; z-index:1;
+  background:radial-gradient(80% 80% at 50% 50%, transparent 30%, rgba(5,10,20,.7) 100%),
+             linear-gradient(180deg, rgba(5,10,20,.55), rgba(5,10,20,.3)); }
+
+.choice-inner{ position:absolute; inset:0; z-index:5; display:flex; flex-direction:column;
+  justify-content:center; padding:0 26px; }
+.q-counter{ font-family:var(--ff-num); font-size:12px; letter-spacing:.3em; color:var(--silver-d); margin-bottom:14px; }
+.q-counter b{ color:var(--chrome); font-weight:700; }
+.q-bar{ height:2px; background:var(--line); margin-bottom:26px; position:relative; }
+.q-bar i{ position:absolute; left:0; top:0; bottom:0; background:var(--metal); transition:width .4s; }
+.q-text{
+  font-family:var(--ff-kr); font-size:clamp(22px,6.4vw,30px); line-height:1.4; color:var(--chrome);
+  text-shadow:0 2px 16px rgba(0,0,0,.8); margin-bottom:30px;
+}
+.q-text::before{ content:"//"; color:var(--glitch-c); margin-right:8px; font-family:var(--ff-num); }
+
+.choices{ display:flex; flex-direction:column; gap:12px; }
+.choice{
+  position:relative; text-align:left; cursor:pointer;
+  font-family:var(--ff-body); font-weight:500; font-size:15px; color:var(--silver-l);
+  padding:15px 18px 15px 46px; border:1px solid var(--line);
+  background:linear-gradient(100deg, rgba(15,29,51,.78), rgba(10,19,34,.6));
+  backdrop-filter:blur(3px); transition:.22s;
+}
+.choice::before{
+  content:attr(data-k); position:absolute; left:14px; top:50%; transform:translateY(-50%);
+  font-family:var(--ff-num); font-size:13px; color:var(--silver-d); font-weight:700;
+}
+.choice:hover,.choice:focus-visible{ border-color:var(--silver); background:linear-gradient(100deg,var(--steel),rgba(15,29,51,.7)); outline:none; transform:translateX(3px); }
+.choice:hover::before{ color:var(--glitch-c); }
+
+/* 반응 오버레이 */
+.reaction{
+  position:absolute; inset:0; z-index:20; display:none;
+  align-items:flex-end; justify-content:center; padding:0 26px 16%;
+  cursor:pointer;
+}
+.reaction.on{ display:flex; }
+.react-img{ /* 선택지별 이미지 자리표시 (JS가 background 주입) */
+  position:absolute; inset:0; z-index:0; background-size:cover; background-position:center;
+  background-color:var(--navy); opacity:.55;
+}
+.react-img.ph{ background-image:linear-gradient(160deg,rgba(36,75,92,.5),rgba(5,10,20,.9)); opacity:1; }
+.react-scrim{ position:absolute; inset:0; z-index:1; background:linear-gradient(180deg,rgba(5,10,20,.2),rgba(5,10,20,.85)); }
+.react-box{ position:relative; z-index:3; max-width:420px; text-align:center; }
+.react-name{ font-family:var(--ff-kr); letter-spacing:.06em; font-size:17px; color:var(--glitch-c); margin-bottom:10px; }
+.react-line{
+  font-family:var(--ff-kr); font-size:clamp(20px,5.8vw,26px); line-height:1.45; color:var(--chrome);
+  text-shadow:0 2px 14px rgba(0,0,0,.85);
+}
+.react-line::before{ content:"“"; opacity:.5; } .react-line::after{ content:"”"; opacity:.5; }
+.react-cont{ margin-top:22px; font-family:var(--ff-disp); font-size:11px; letter-spacing:.25em; color:var(--silver-d); animation:startPulse 2s infinite; }
+
+/* 긍정: 렌즈 플레어 */
+.fx-flare{
+  position:absolute; inset:0; z-index:15; pointer-events:none; opacity:0;
+  background:
+    radial-gradient(circle at 72% 30%, rgba(255,247,230,.9), rgba(255,247,230,0) 18%),
+    radial-gradient(circle at 72% 30%, rgba(255,247,230,.35), transparent 42%),
+    linear-gradient(115deg, transparent 40%, rgba(255,247,230,.25) 50%, transparent 60%);
+  mix-blend-mode:screen;
+}
+.fx-flare.on{ animation:flare 1.3s ease-out forwards; }
+@keyframes flare{ 0%{opacity:0; transform:scale(.9)} 25%{opacity:1} 100%{opacity:0; transform:scale(1.15)} }
+
+/* 부정: 글리치 */
+.fx-glitch{ position:absolute; inset:0; z-index:15; pointer-events:none; opacity:0; mix-blend-mode:screen;
+  background:repeating-linear-gradient(0deg, rgba(255,59,107,.12) 0 3px, transparent 3px 6px); }
+.fx-glitch.on{ animation:glOn 1s steps(8) forwards; }
+@keyframes glOn{ 0%{opacity:0} 10%{opacity:1; transform:translateX(-6px)} 30%{transform:translateX(5px)} 50%{transform:translateX(-3px) skewX(2deg)} 70%{opacity:.9; transform:translateX(2px)} 100%{opacity:0} }
+.shake{ animation:shake .5s steps(6); }
+@keyframes shake{ 0%,100%{transform:none} 20%{transform:translate(-4px,2px)} 40%{transform:translate(4px,-2px)} 60%{transform:translate(-3px,-1px)} 80%{transform:translate(3px,1px)} }
+
+/* =========================================================================
+   OPEN SEQUENCE (선택지 → 캐릭터 페이지 전환: 로고 회전)
+   ========================================================================= */
+#scr-open{ background:radial-gradient(60% 50% at 50% 50%,var(--navy),var(--abyss)); display:flex; align-items:center; justify-content:center; }
+.open-logo{ width:min(48vw,200px); animation:openSpin 2.4s cubic-bezier(.7,0,.2,1) forwards; }
+@keyframes openSpin{
+  0%{transform:rotate(0) scale(.6); opacity:0; filter:blur(6px)}
+  25%{opacity:1; filter:none}
+  100%{transform:rotate(1080deg) scale(1.05); opacity:0}
+}
+.open-ring{ position:absolute; width:240px; height:240px; border:1px solid var(--silver-d); border-radius:50%;
+  border-top-color:var(--glitch-c); animation:ringSpin 1.2s linear infinite; opacity:.5; }
+@keyframes ringSpin{ to{transform:rotate(360deg)} }
+
+/* =========================================================================
+   [4] 캐릭터 / 세계관 페이지
+   ========================================================================= */
+#scr-dossier{ display:flex; flex-direction:column; background:linear-gradient(180deg,var(--navy-d),var(--abyss)); }
+
+/* 상단 헤더 + 책갈피 탭(해군 테마) */
+.dossier-head{ position:relative; z-index:8; padding:18px 18px 0; flex:0 0 auto; }
+.dh-title{ display:flex; align-items:center; gap:10px; }
+.dh-mark{ width:26px; height:26px; flex:0 0 auto; }
+.dh-mark svg{ width:100%; height:100%; }
+.dh-name{ font-family:var(--ff-disp); font-weight:700; letter-spacing:.22em; font-size:13px; color:var(--silver-l); }
+.dh-sub{ font-family:var(--ff-num); font-size:9px; letter-spacing:.3em; color:var(--silver-d); margin-top:2px; }
+
+.tabs{ display:flex; gap:0; margin-top:16px; }
+.tab{
+  flex:1; cursor:pointer; position:relative; padding:13px 6px 11px; text-align:center;
+  font-family:var(--ff-disp); font-weight:600; letter-spacing:.14em; font-size:12px; color:var(--silver-d);
+  background:linear-gradient(180deg,rgba(15,29,51,.5),rgba(10,19,34,.2));
+  border:1px solid var(--line); border-bottom:none;
+  /* 책갈피 모양 */
+  clip-path:polygon(0 0,100% 0,100% 78%,50% 100%,0 78%);
+  transition:.25s;
+}
+.tab .kr{ display:block; font-family:var(--ff-kr); font-size:13px; margin-top:3px; letter-spacing:0; }
+.tab.active{ color:var(--chrome); background:linear-gradient(180deg,var(--steel),var(--navy)); border-color:var(--silver-d); }
+.tab.active::after{ content:""; position:absolute; left:0; right:0; top:0; height:2px; background:var(--metal); }
+
+/* ---- 캐릭터 탭 ---- */
+.dossier-body{ position:relative; z-index:4; flex:1 1 auto; min-height:0; }
+.pane{ position:absolute; inset:0; opacity:0; visibility:hidden; transition:opacity .4s; }
+.pane.active{ opacity:1; visibility:visible; }
+
+.char-layout{ display:flex; height:100%; }
+/* 좌측: 증명사진 리스트(계급순) */
+.char-list{ flex:0 0 40%; max-width:185px; overflow-y:auto; border-right:1px solid var(--line);
+  padding:10px 8px 24px; background:rgba(5,10,20,.35); }
+.char-list::-webkit-scrollbar{ width:4px; } .char-list::-webkit-scrollbar-thumb{ background:var(--steel); }
+/* 캐릭터 선택 시: 리스트를 좁혀 증명사진만 보이게 */
+.char-list{ transition:flex-basis .35s ease, max-width .35s ease; }   /* 부드럽게 줄어들도록 */
+.char-layout.compact .char-list{ flex:0 0 64px; max-width:64px; padding:10px 6px 24px; }
+.char-layout.compact .cl-item{ justify-content:center; padding:6px 4px; }
+.char-layout.compact .cl-meta{ display:none; }   /* 이름/계급 숨기고 증명사진만 */
+.cl-item{ display:flex; gap:9px; align-items:center; padding:8px; cursor:pointer; border:1px solid transparent; transition:.2s; }
+.cl-item:hover{ background:rgba(29,59,94,.4); }
+.cl-item.sel{ border-color:var(--silver-d); background:linear-gradient(100deg,var(--steel),transparent); }
+/* 증명사진 자리(3:4) — github 업로드 후 .id-photo background 주입 */
+.id-photo{ flex:0 0 auto; width:42px; height:56px; background:linear-gradient(160deg,#243b53,#0a1322);
+  border:1px solid var(--line); position:relative; overflow:hidden; }
+.id-photo::after{ content:"3:4"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  font-family:var(--ff-num); font-size:8px; color:var(--silver-d); opacity:.5; }
+.cl-meta .rk{ font-family:var(--ff-num); font-size:8px; letter-spacing:.12em; color:var(--glitch-c); }
+.cl-meta .nm{ font-family:var(--ff-body); font-weight:700; font-size:13px; color:var(--silver-l); line-height:1.2; }
+
+/* 우측: 상세(스탠딩 + 정보) */
+.char-detail{ flex:1 1 auto; position:relative; overflow:hidden; }
+/* 스탠딩 이미지 자리 — 왼쪽에 표시. github 업로드 후 .standing background 주입 */
+.standing{
+  position:absolute; left:0; right:0; bottom:0; top:0; width:100%; height:100%; z-index:1;
+  background-size:cover; background-position: center; background-repeat:no-repeat;
+  filter:drop-shadow(0 0 24px rgba(0,0,0,.6));
+}
+.standing.ph{ background-image:linear-gradient(180deg,transparent 8%,rgba(36,75,92,.4) 60%,rgba(10,19,34,.85));
+  border-left:1px dashed var(--line); }
+.standing.ph::after{ content:"STANDING\A 스탠딩 이미지"; white-space:pre; position:absolute; left:50%; top:46%;
+  transform:translateX(-50%); font-family:var(--ff-num); font-size:9px; letter-spacing:.15em; color:var(--silver-d);
+  text-align:center; opacity:.55; }
+.cd-info{ position:absolute; right:0; top:0; bottom:0; width:62%; z-index:3; padding:22px 20px 22px 18px;
+  overflow-y:auto; display:flex; flex-direction:column; justify-content:center;
+  background:linear-gradient(90deg, rgba(15,29,51,0) 0%, rgba(13,24,44,.78) 22%, rgba(10,19,34,.88) 100%);
+  backdrop-filter:blur(2px); }
+.cd-info::-webkit-scrollbar{ width:0; }
+.cd-rank{ font-family:var(--ff-num); font-size:10px; letter-spacing:.22em; color:var(--glitch-c); }
+.cd-name{ font-family:var(--ff-kr); font-size:26px; color:var(--chrome); margin:4px 0 2px; line-height:1.1; }
+.cd-en{ font-family:var(--ff-disp); font-size:11px; letter-spacing:.3em; color:var(--silver-d); margin-bottom:14px; }
+.cd-stats{ display:flex; gap:14px; margin-bottom:14px; flex-wrap:wrap; }
+.cd-stats span{ font-family:var(--ff-body); font-size:11px; color:var(--silver); }
+.cd-stats span b{ display:block; font-family:var(--ff-num); font-size:9px; color:var(--silver-d); letter-spacing:.12em; margin-bottom:2px; }
+.cd-bio{ font-family:var(--ff-body); font-size:12.5px; line-height:1.7; color:var(--silver); margin-bottom:16px; }
+.cd-quote{ border-left:2px solid var(--silver-d); padding-left:12px; font-family:var(--ff-doc); font-style:italic;
+  font-size:13px; line-height:1.6; color:var(--silver-l); }
+
+/* 입장 전(미선택) 안내 */
+.cd-empty{ position:absolute; inset:0; z-index:5; display:flex; align-items:center; justify-content:center;
+  flex-direction:column; gap:10px; text-align:center; padding:30px; }
+.cd-empty .tag{ font-family:var(--ff-num); font-size:11px; letter-spacing:.25em; color:var(--silver-d); }
+.cd-empty .ko{ font-family:var(--ff-body); font-size:13px; color:var(--silver); }
+
+/* ---- 세계관 탭 ---- */
+.world-scroll{ height:100%; overflow-y:auto; }
+.world-scroll::-webkit-scrollbar{ width:5px; } .world-scroll::-webkit-scrollbar-thumb{ background:var(--steel); }
+/* 최상단 이미지(위키피디아식) — github 업로드 후 .world-hero background 주입 */
+.world-hero{ height:170px; position:relative; background:linear-gradient(135deg,var(--steel),var(--abyss));
+  background-size:cover; background-position:center; display:flex; align-items:flex-end; }
+.world-hero::before{ content:""; position:absolute; inset:0; background:linear-gradient(180deg,transparent 40%,rgba(5,10,20,.92)); }
+.world-hero .cap{ position:relative; z-index:2; padding:14px 20px; }
+.world-hero .cap h1{ font-family:var(--ff-kr); font-size:24px; color:var(--chrome); letter-spacing:.02em; }
+.world-hero .cap p{ font-family:var(--ff-num); font-size:9px; letter-spacing:.3em; color:var(--silver-d); margin-top:4px; }
+.world-hero .ph-tag{ position:absolute; top:10px; right:12px; z-index:2; font-family:var(--ff-num);
+  font-size:8px; letter-spacing:.2em; color:var(--silver-d); border:1px dashed var(--line); padding:4px 7px; opacity:.6; }
+
+.world-body{ padding:8px 20px 60px; }
+.infobox{ float:right; width:42%; max-width:170px; margin:8px 0 12px 14px; border:1px solid var(--line);
+  background:rgba(15,29,51,.5); padding:10px; }
+.infobox .ib-h{ font-family:var(--ff-disp); font-weight:700; font-size:11px; letter-spacing:.14em; color:var(--chrome);
+  text-align:center; padding-bottom:8px; border-bottom:1px solid var(--line); margin-bottom:8px; }
+.infobox .ib-row{ display:flex; justify-content:space-between; gap:8px; font-size:10.5px; padding:3px 0; }
+.infobox .ib-row b{ color:var(--silver-d); font-weight:500; } .infobox .ib-row span{ color:var(--silver-l); text-align:right; }
+
+.w-sec{ padding:14px 0; border-bottom:1px solid var(--line); }
+.w-sec h2{ font-family:var(--ff-kr); font-size:18px; color:var(--silver-l); margin-bottom:4px;
+  display:flex; align-items:baseline; gap:8px; }
+.w-sec h2 i{ font-family:var(--ff-num); font-size:11px; color:var(--glitch-c); font-style:normal; }
+.w-sec p{ font-family:var(--ff-doc); font-size:13px; line-height:1.85; color:var(--silver); margin-top:8px; }
+.w-sec ul{ margin:8px 0 0 4px; list-style:none; }
+.w-sec li{ font-family:var(--ff-body); font-size:12.5px; line-height:1.7; color:var(--silver); padding-left:16px; position:relative; }
+.w-sec li::before{ content:"▸"; position:absolute; left:0; color:var(--silver-d); }
+
+/* =========================================================================
+   오디오 컨트롤 (전역)
+   ========================================================================= */
+.audio-ctrl{
+  position:absolute; bottom:16px; left:16px; z-index:70; display:none;
+  width:38px; height:38px; align-items:center; justify-content:center; cursor:pointer;
+  border:1px solid var(--line); background:rgba(5,10,20,.6); backdrop-filter:blur(4px); color:var(--silver);
+}
+.audio-ctrl.show{ display:flex; }
+.audio-ctrl svg{ width:18px; height:18px; }
+
+/* 접근성: 모션 줄이기 */
+@media(prefers-reduced-motion:reduce){
+  *{ animation-duration:.001s !important; animation-iteration-count:1 !important; transition-duration:.15s !important; }
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+  <div class="frame grain scan" id="frame">
+    <div class="ocean-glow"></div>
+
+    <!-- ===================== [1] 메인 화면 ===================== -->
+    <section class="screen active hud-corners" id="scr-main">
+      <div class="main-bg"></div>
+      <div class="glitch-field"></div>
+      <div class="main-inner">
+        <div class="logo-wrap">
+          <!-- ※ 로고: 사용자가 제공한 링크 (교체 시 src만 수정) -->
+          <img class="logo-img gl" id="logo" alt="LOGO"
+               onerror="this.style.display='none';document.getElementById('logoFallback').style.display='block';"
+               src="https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/ffglogo.png" />
+          <div class="logo-fallback" id="logoFallback">F.F.G.</div>
+        </div>
+        <div class="tagline">제3해역함대 제32호위함전대 소속 건운함</div>
+        <div class="start-btn">전입신고</div>
+      </div>
+      <div class="flash" id="flash"></div>
+    </section>
+
+    <!-- ===================== [2] 쇼트 애니메이션 ===================== -->
+    <section class="screen" id="scr-anim">
+      <div class="anim-prog" id="animProg"></div>
+      <div class="skip-hint">TOUCH&nbsp;TO&nbsp;SKIP</div>
+      <div class="anim-stage">
+        <div class="anim-frame" id="frameA"></div>
+        <div class="anim-frame" id="frameB"></div>
+      </div>
+      <div class="anim-lyric" id="lyric"></div>
+
+      <!-- 스킵/계속 모달 -->
+      <div class="skip-modal" id="skipModal">
+        <h3>애니메이션을 건너뛸까요?</h3>
+        <div class="row">
+          <button class="mbtn alt" id="btnSkip">건너뛰기 ▸▸</button>
+          <button class="mbtn" id="btnResume">계속 보기 ▸</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== [3] 선택지 세션 ===================== -->
+    <section class="screen" id="scr-choice">
+      <div class="choice-bg ph" id="choiceBg"></div>
+      <div class="choice-scrim"></div>
+      <div class="fx-flare" id="fxFlare"></div>
+      <div class="fx-glitch" id="fxGlitch"></div>
+
+      <div class="choice-inner" id="choiceInner">
+        <div class="q-counter">QUESTION <b id="qNow">01</b> / 11</div>
+        <div class="q-bar"><i id="qBar"></i></div>
+        <div class="q-text" id="qText">Lorem ipsum dolor sit amet?</div>
+        <div class="choices" id="choices"></div>
+      </div>
+
+      <!-- 반응 오버레이 -->
+      <div class="reaction" id="reaction">
+        <div class="react-img ph" id="reactImg"></div>
+        <div class="react-scrim"></div>
+        <div class="react-box">
+          <div class="react-name" id="reactName">CHARACTER</div>
+          <div class="react-line" id="reactLine">Lorem ipsum.</div>
+          <div class="react-cont">TOUCH TO CONTINUE ▸</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== OPEN SEQUENCE ===================== -->
+    <section class="screen" id="scr-open">
+      <div class="open-ring"></div>
+      <!-- ※ 동일 로고 재사용 -->
+      <img class="open-logo" alt="" src="https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/ffglogo.png" />
+    </section>
+
+    <!-- ===================== [4] 캐릭터 / 세계관 ===================== -->
+    <section class="screen" id="scr-dossier">
+      <header class="dossier-head">
+        <div class="dh-title">
+          <span class="dh-mark">
+            <!-- 인라인 SVG 닻(해군 테마, 이미지 아님) -->
+            <svg viewBox="0 0 24 24" fill="none" stroke="#c4cdda" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="4" r="2"/><path d="M12 6v15"/><path d="M8 9h8"/>
+              <path d="M5 14a7 7 0 0 0 14 0"/><path d="M5 14l-2 1.5M19 14l2 1.5"/>
+            </svg>
+          </span>
+          <div>
+            <div class="dh-name">FFG-332</div>
+            <div class="dh-sub">CLASSIFIED · LOREM FLEET</div>
+          </div>
+        </div>
+        <nav class="tabs">
+          <div class="tab active" data-pane="pane-char">CHARACTERS<span class="kr">승조원</span></div>
+          <div class="tab" data-pane="pane-world">WORLDVIEW<span class="kr">세계관</span></div>
+        </nav>
+      </header>
+
+      <div class="dossier-body">
+        <!-- 캐릭터 페인 -->
+        <div class="pane active" id="pane-char">
+          <div class="char-layout">
+            <aside class="char-list" id="charList"><!-- JS 주입 --></aside>
+            <div class="char-detail" id="charDetail">
+              <div class="cd-empty" id="cdEmpty">
+                <div class="tag">SELECT A CREW MEMBER</div>
+                <div class="ko">열람할 승조원을 선택하세요</div>
+              </div>
+              <!-- 선택 시 JS가 아래 채움 -->
+              <div class="standing ph" id="standing" style="display:none"></div>
+              <div class="cd-info" id="cdInfo" style="display:none"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 세계관 페인 -->
+        <div class="pane" id="pane-world">
+          <div class="world-scroll">
+            <div class="world-hero" style="background-image:url('https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/ffghero.png')">
+              <div class="cap">
+                <h1>호위함 건운함</h1>
+                <p>FFG-832 · 제32호위함전대</p>
+              </div>
+            </div>
+            <div class="world-body" id="worldBody"><!-- JS 주입 --></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 오디오 컨트롤 -->
+    <div class="audio-ctrl" id="audioCtrl" title="음소거">
+      <svg id="audioIcon" viewBox="0 0 24 24" fill="none" stroke="#c4cdda" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16 9a3 3 0 0 1 0 6"/><path d="M18.5 7a6 6 0 0 1 0 10"/>
+      </svg>
+    </div>
+
+    <!-- ※ 배경음악: 프롬프트에서 제공된 링크 삽입 -->
+    <audio id="bgm" preload="auto" loop>
+      <source src="https://github.com/yermigionic-web/ffg332/raw/refs/heads/main/ffgbgm.mp3" type="audio/mpeg" />
+    </audio>
+  </div>
+</div>
+
+<script>
+/* =========================================================================
+   ░░ 데이터 영역 ░░  (전부 lorem ipsum — 이 부분만 고치면 됩니다)
+   ========================================================================= */
+
+/* ───── [타이밍 조절] ─────────────────────────────────────────────────────
+   ▼▼▼ 노래 박자와 안 맞으면 이 값(ms)만 바꾸세요. 1000 = 1초 ▼▼▼
+   가사/프레임은 이 간격마다 1장씩 넘어갑니다. (가사 줄 수 = 프레임 수 = 17) */
+const FRAME_INTERVAL = 1800; // ← 각 컷/가사 표시 간격(ms). 박자 안 맞으면 여기 수정!
+/* ▲▲▲ ───────────────────────────────────────────────────────────────── */
+
+/* 쇼트 애니메이션: 이미지 17장.
+   github 업로드 후 각 칸에 URL 문자열을 넣으세요. (빈 문자열이면 자리표시자 표시) */
+const ANIM_IMAGES = [
+    "https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/ffgani0.png",
+  "https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/ffgani1.png","https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/ffgani2.png","https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/ffgani3.png","https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/ffgani4.png","https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/ffgani5.png","https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/ffgani6.png","https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/ffgani7.png","https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/ffgani8.png","https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/ffgani9.png","https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/ffgani10.png","https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/ffgani11.png","https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/ffgani12.png","https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/ffgani13.png","https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/ffgani14.png","https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/ffgani15.png","https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/ffgani16.png","https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/ffgani17.png"  // 17칸
+];
+
+/* 가사 17줄 (lorem ipsum — 자유 수정) */
+const LYRICS = [
+  " ",
+  "그래 두말하면 졸라 입이 아프지",
+  "나인 뒤로 잡수고 기분이 나쁘지",
+  "계약서에 싸인 후에 주변에다 관두지",
+  "남자도 아냐 걘 그냥",
+  "It took around a few years, you can't just do it",
+  "How can I trust your brand? 티가 나는 수입",
+  "말하지 마 굳이 슬 맘이 아프지",
+  "All I can do now is Pray to 하나님 아버지",
+  " ",
+  "그래 두말하면 졸라 입이 아프지",
+  "나인 뒤로 잡수고 기분이 나쁘지",
+  "계약서에 싸인 후에 주변에다 관두지",
+  "남자도 아냐 걘 그냥",
+  "It took around a few years, you can't just do it",
+  "How can I trust your brand? 티가 나는 수입",
+  "말하지 마 굳이 슬 맘이 아프지",
+  "All I can do now is Pray to 하나님 아버지"
+];
+
+/* 캐릭터 11명 — 상단부터 계급순(높은→낮은). 모든 텍스트 lorem.
+   idPhoto / standing : github 업로드 후 URL 입력 (빈 문자열이면 자리표시) */
+const CHARACTERS = [
+  { rank:"CAPTAIN",         rankKr:"함장―대령",   name:"이서임",  en:"Seo-im Lee",  sex:"여",   age:"54",
+    bio:"군대라는 거대한 체계의 모순을 평생 몸으로 겪어왔으면서도, 그 모순이 부하들의 살갗을 파고들 때면 '우리 땐 더했다'는 마법의 주문으로 덮어버리는 데 통달한 1세대 장교. 책임감은 함정 제일이나, 그 책임이 가리키는 방향은 진급 심사위원회의 서류철로 향해 있을 때가 많습니다.",
+    quote:"자랑스러운 건운함에 온 걸 환영한다. 덧붙여 내 배에서 소음표 나갈 일은 없어야 할 거다.", idPhoto:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/0port.png", standing:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/0st.png" },
+  { rank:"LIEUTENANT",       rankKr:"대위",   name:"한세진",  en:"Se-Jin Han",     sex:"여",   age:"31",
+    bio:"책임은 결재 라인 뒤로, 공로는 보고서 표지 앞으로. 표정 관리와 승진 포인트 계산의 달인으로, 부하들의 갈린 피땀을 자신의 유능함으로 포장하는 기술은 해군참모총장급입니다. 수익률이 보장된 관계에서만 지갑(혹은 미소)을 여는 철저한 투자자이기도 하죠.",
+    quote:"환영해. 아, 그 서류는 내 담당이 아니니까 행정실로 가보는 게 어때? 난 보고만 받을 거라서.", idPhoto:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/1port.png", standing:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/1st.png" },
+  { rank:"SENIOR",    rankKr:"상사",   name:"도경원",  en:"Kyeongwon Do",    sex:"여",   age:"38",
+    bio:"18년 짬바의 워커홀릭. 배 밑바닥 기계들은 손바닥 보듯 환히 알면서, 자기 부하들의 체력 한계는 영원히 모르는 사람. 무한한 애정과 인내로 후배를 가르친다고 굳게 믿고 있지만, 기관부 막내들은 차라리 쌍욕을 듣고 쉬기를 간절히 바라고 있습니다.",
+    quote:"인사할 시간 없어, 병신아. 거기 스패너 줘 봐. 아니, 그 옆에 거!", idPhoto:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/2port.png", standing:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/2st.png" },
+  { rank:"CHIEF",    rankKr:"중사",   name:"김서담",  en:"Seodam Kim",   sex:"여",   age:"33",
+    bio:"갈굼을 '전통'과 '군기'라는 이름으로 세탁해 합리화하는 갑판부의 실세. 배의 외관을 함대 최고로 반짝이게 닦는 대신, 부하들의 멘탈을 가루로 빻아버립니다. 윗선에는 한없이 순종적이며, 아랫사람의 작은 실수 하나로 그날 하루의 기분을 풀곤 합니다.", quote:"인사 소리 봐라. 배 타러 왔냐, 소풍 왔냐? 다시 해. 목소리 제대로 나올 때까지.", idPhoto:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/3port.png", standing:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/3st.png" },
+  { rank:"PO3",         rankKr:"하사",   name:"서지오",  en:"Zio Seo",  sex:"여",   age:"25",
+    bio:"함내에서 가장 정확한 눈을 가졌지만, 융통성이라곤 해군 규정집 두께보다 얇은 원칙주의자. 부조리를 혐오하여 상하를 막론하고 들이받는 훌륭한 군인이지만, 위로가 필요한 사람에게 개선 방안 브리핑을 해주는 놀라운 공감 능력의 소유자입니다.",
+    quote:"신병. 전입 신고 규정은 숙지하고 왔겠지. …복장 상태가 어긋났군. 집중해.", idPhoto:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/4port.png", standing:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/4st.png" },
+  { rank:"HM3",       rankKr:"의무 하사",   name:"정성혜",  en:"Seonghye Jeong",     sex:"여",   age:"27",
+    bio:"번아웃 말기 환자가 남의 건강을 책임지는 아이러니. 차트에 적히는 것은 진단명이 아니라 그날의 기분과 상대에 대한 호감도입니다. 직권 남용을 '숨 쉴 구멍'이라는 철학으로 포장하며, 꾀병인지 진짜인지 알면서도 모른 척 넘겨주는 의무실의 권력자.",
+    quote:"안색은 멀쩡한데. 뭐, 피곤하면 저기 가서 누워. 진통제나 줄까? 잠들어서 존나 까이게.", idPhoto:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/5port.png", standing:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/5st.png" },
+  { rank:"SEAMAN",   rankKr:"병장",   name:"류우희",  en:"Woohee Ryu",    sex:"여",   age:"22",
+    bio:"전역일만 바라보며 숨쉬는 것도 귀찮아하는 말년. 밧줄 묶는 실력 하나만큼은 함장도 인정할 정도지만, '내 이름 안 걸린 일'에는 우주적 무관심을 보입니다. 그녀의 방관은 때로 악의보다 더한 나비효과를 불러일으켜 후임들의 피를 말리곤 합니다.",
+    quote:"신병? 어, 그래. 내 눈앞에만 띄지 마. 피곤하다.", idPhoto:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/6port.png", standing:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/6st.png" },
+  { rank:"S.APPRENTICE",      rankKr:"상병",   name:"오민조",  en:"Minzo Oh",   sex:"여",   age:"21",
+    bio:"식당을 기점으로 함내 비공식 경제를 주무르는 큰손. 냉동 만두 하나로 당직을 바꾸고, 인스턴트 커피로 고급 정보를 캐내는 자본주의의 화신입니다. 공정한 거래를 빙자한 은근한 착취 구조를 만들면서도, 본인은 언제나 억울한 표정을 짓고 있죠.",
+    quote:"왔어? 배고프지? 저기 남은 새우튀김 먹어도 돼. 대신 다음 주 내 당직 한 시간만 대타 뛰어줄래?", idPhoto:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/7port.png", standing:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/7st.png" },
+  { rank:"S.RECRUIT",      rankKr:"일병",   name:"김채윤",  en:"Chaeyoon Kim",    sex:"여",   age:"24",
+    bio:"서류가 곧 무기임을 일찌감치 깨달은 늦깎이 병사. 최소한의 노력으로 최대한의 이득을 뽑아내는 효율성의 끝판왕입니다. 간부들의 부당한 지시는 규정집을 방패 삼아 우아하게 튕겨내지만, 그 방패가 남을 향해 뻗어가는 일은 매우 드뭅니다.",
+    quote:"전입자시군요. 인사 기록 카드는 저기 데스크에 두고 가십시오. 규정 외 질문은 받지 않겠습니다.", idPhoto:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/8port.png", standing:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/8st.png" },
+  { rank:"S.RECRUIT",          rankKr:"일병",   name:"전나라",  en:"Nara Jeon",   sex:"여",   age:"21",
+    bio:"절대음감의 소유자지만, 절대적인 쫄보. 모니터 앞에서는 잠수함의 숨소리도 잡아내며 용감해지지만, 모니터 밖에서는 선임의 눈치만 보며 쭈그러듭니다. 불의에 분노하지만 반항할 용기는 없어, 선임의 헤드셋 선을 꼬아놓는 것으로 소심한 복수를 감행합니다.",
+    quote:"아, 저, 안녕하세요… 짐 정리는 내가 도와줄게…….", idPhoto:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/9port.png", standing:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/9st.png" },
+  { rank:"S.RECRUIT", rankKr:"일병", name:"강보리", en:"Bori Kang",  sex:"여",   age:"21",
+    bio:"넘치는 체력과 정의감으로 무장했으나, 분위기 파악 능력은 함수부터 함미까지 털어도 나오지 않는 투머치토커. 불의를 보면 참지 않지만, 그 불의를 고발하는 타이밍이 항상 최악이라 결국 부서원 전체를 얼어붙게 만드는 기적의 불운을 타고났다.",
+    quote:"무거운 짐은 제게 맡겨 주십시오! 아, 우리 부서구나. 그래도 맡겨!", idPhoto:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/10port.png", standing:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/10st.png" }
+];
+
+/* 선택지 세션: 질문 11 / 선택지 33 / 반응 33
+   type: "pos"(긍정·렌즈플레어) | "neu"(중립) | "neg"(부정·글리치)
+   bgChar : 배경(blur)으로 쓸 캐릭터 index (0~10)
+   reactImg : 선택지별 반응 이미지 — github 업로드 후 URL (빈 문자열=자리표시)
+   ─ 모든 문구 lorem ipsum, 자유 수정 ─ */
+const QUESTIONS = [
+  { bgChar:0, q:"요즘 애들은 조금만 힘들어도 입부터 튀어나오더군. 우리 때는 방한복도 없이 깡깡이질을 했는데 말이야. 신병, 넌 어떻게 생각하나?",
+    a:[ {t:"함장님 말씀이 맞습니다! 군인이라면 그 정도 고생은 당연하다고 생각합니다.", char:0, type:"pos", line:"하. 말은 잘하는군. 그 정신이 배 내릴 때까지 가는지 보겠다. 갑판으로 가봐.", img:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/0pos.png"},
+        {t:"옛날 선배님들의 노고가 있었기에 지금의 저희가 있다고 생각합니다.",        char:0, type:"neu", line:"입바른 소리라도 할 줄 알면 중간은 가겠지.", img:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/0neu.png"},
+        {t:"너무 구시대적인 발상 아닙니까? 시대가 어느 땐데…….",          char:0, type:"neg", line:"요즘 애들은 참 똑똑해. 그 똑똑한 머리로 오늘 밤 야간 당직 규정이나 달달 외워둬라.", img:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/0neg.png"} ] },
+  { bgChar:1, q:"작전계획서 초안인데, 오타 검수 좀 해줄래? 아, 내 이름 들어간 부분은 특히 신경 써서 보고.",
+    a:[ {t:"네, 알겠습니다. 규정대로 검수하겠습니다.",      char:1, type:"neu", line:"뭐, 무난하네. 수고해.", img:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/1neu.png"},
+        {t:"(꼼꼼히 검수한다.) 작전관님 존함이 들어간 부분은 글씨 폰트도 한 단계 키워두었습니다!",      char:1, type:"pos", line:"센스 있네. 좋아. 다음 휴가 때 내 결재 라인은 걱정 마.", img:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/1pos.png"},
+        {t:"이건 작전관님 업무 아닙니까?",        char:1, type:"neg", line:"……내가 할 일을 네가 정해주게? 일 잘하네. 알아서 살아남아 봐.", img:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/1neg.png"} ] },
+  { bgChar:2, q:"신병! 기관실 바닥에 기름 샌 거 안 보여?",
+    a:[ {t:"기름 냄새가 너무 지독한데요……. 방독면 쓰면 안 됩니까?",   char:2, type:"neg", line:"씨발, 지금 장난하냐? 여기가 화생방 훈련장이야? 넌 오늘 퇴근할 생각 하지 마라.", img:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/2neg.png"},
+        {t:"(기름걸레를 들고 미친 듯이 닦는다.)",         char:2, type:"pos", line:"빠릿빠릿하네. 맘에 들어. 근데 저기 구석에 덜 닦였다, 눈깔 안 뜨냐? 다시.", img:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/2pos.png"},
+        {t:"네, 알겠습니다. (느릿느릿 닦는다)",           char:2, type:"neu", line:" 속 터지겠네. 야, 비켜. 내가 한다. 넌 저기 가서 공구나 닦아.", img:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/2neu.png"} ] },
+  { bgChar:3, q:"신병. 너 오늘 깡깡이질 한 거 봤는데, 영 시원찮더라. 밥 먹고 힘쓸 데가 그렇게 없어?",
+    a:[ {t:"죄송합니다! 아직 요령이 부족한 것 같습니다.",         char:3, type:"pos", line:"말대꾸하는 거 봐라. 그 군기 제대로 붙들고 있어.", img:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/3pos.png"},
+        {t:"비 와서 녹이 슨 건데, 왜 제 탓을 하십니까?",       char:3, type:"neg", line:"이 씹새가 지금 나랑 말장난을 하네. 오늘 갑판에서 밤 새워.", img:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/3neg.png"},
+        {t:"죄송합니다. 내일 다시 제대로 하겠습니다.",            char:3, type:"neu", line:"내일? 장난하나? 배가 썩어 문드러지는데 내일? 당장 가서 다시 까.", img:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/3neu.png"} ] },
+  { bgChar:4, q:"청음 당직, 규정 시간보다 3분 늦었다. 사유가 뭐지?",
+    a:[ {t:"시계가 좀 안 맞았던 것 같습니다…….", char:4, type:"neu", line:"변명. 시계 동기화는 기본이다. 다시는 핑계 대지 마라.", img:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/4neu.png"},
+        {t:"죄송합니다! 배가 아파서… 다음부터는 이런 일 없도록 하겠습니다!",           char:4, type:"pos", line:"사유는 타당하나, 지각은 지각이다. 다음부턴 체력 관리 똑바로 해.", img:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/4pos.png"},
+        {t:"겨우 3분 가지고 너무 깐깐하게 구시는 거 아닙니까?",        char:4, type:"neg", line:"……겨우 3분? 전시 상황이었으면 그 3분 때문에 배가 가라앉았을 거다. 엎드려.", img:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/4neg.png"} ] },
+  { bgChar:5, q:"어디가 아파서 왔어? 표정 보아하니 꾀병 같은데.",
+    a:[ {t:"진짜 아프다니까요! 왜 사람 말을 못 믿습니까?",       char:5, type:"neg", line:"톤 올라가는 거 보니까 꾀병 확실하네. 안 아픈 애들 약 처방해 줄 시간 없다. 당장 나가.", img:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/5neg.png"},
+        {t:"머리가 너무 아파서 왔습니다. 진통제 좀 주십시오.",               char:5, type:"neu", line:"그래. 진통제 먹고 바로 복귀해.", img:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/5neu.png"},
+        {t:"사실 어제 야간 당직 서느라 너무 피곤해서……. 한 시간만 누워있다 가게 해 주십시오.",           char:5, type:"pos", line:"솔직해서 좋네. 하루만이다. 차트엔 두통이라고 적어둘게.", img:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/5pos.png"} ] },
+  { bgChar:6, q:"아… 신병이냐? 내 시야 가리지 말고 딴 데 가서 놀아라.",
+    a:[ {t:"병장님, 혹시 제가 도와드릴 일 있습니까?",   char:6, type:"pos", line:"그래. 안 보이는 곳에 찌그러져 있어.", img:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/6pos.png"},
+        {t:"갑판 청소 구역 배정받으러 왔습니다만.",            char:6, type:"neg", line:"아, 썅…… 강보리. 네 짬 나한테 때리냐?", img:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/6neg.png"},
+        {t:"(말없이 조용히 자리를 피한다)",  char:6, type:"neu", line:"눈치 좋네.", img:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/6neu.png"} ] },
+  { bgChar:7, q:"신병. 배고프지? 저기 구석에 라면 하나 남은 거 끓여 먹어. 근데 다음 주 화요일 저녁 당직, 너 비어 있더라?",
+    a:[ {t:"저 라면 안 좋아해서……. 괜찮습니다.",    char:7, type:"neu", line:"아쉽네. 나중에 배고프다고 징징대지 마.", img:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/7neu.png"},
+        {t:"감사합니다! 화요일 저녁 당직, 제가 대타 뛰겠습니다!",       char:7, type:"pos", line:"씩씩하고 좋다, 야. 계란 하나 남은 것도 넣어줄게.", img:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/7pos.png"},
+        {t:"라면 하나 주고 당직 대타를 뛰라니, 너무 불공정한 거 아닙니까?",         char:7, type:"neg", line:"불공정? 애가 아는 게 하나도 없네. 군생활 눈치 있게 좀 하자.", img:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/7neg.png"} ] },
+  { bgChar:8, q:"신병, 서명해. 휴가 관련 규정 안내문이다. 읽어보든가 말든가.",
+    a:[ {t:"나중에 읽어보고 서명하면 안 됩니까? 지금 바빠서……",      char:8, type:"neg", line:"휴가 가기 싫은가 보지. 그러시든가.", img:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/8neg.png"},
+        {t:"(대충 서명하고 넘긴다)",         char:8, type:"neu", line:"그런 식으로 두 번만 더 하면 영창 간다, 너.", img:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/8neu.png"},
+        {t:"(꼼꼼히 읽어본 후 서명한다)",         char:8, type:"pos", line:"일머리 있는 애가 들어왔네.", img:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/8pos.png"} ] },
+  { bgChar:9, q:"저기, 신병……. 내가 아까 선 정리해 둔 거, 혹시 건드렸어?",
+    a:[ {t:"죄송합니다! 제가 청소하다가 잘못 건드린 것 같습니다.",    char:9, type:"pos", line:"아냐, 됐어! 그거 내가 할게! 괜찮다니까……!", img:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/9pos.png"},
+        {t:"선 좀 엉킨 거 가지고 째째하게 왜 그러십니까?",       char:9, type:"neg", line:"(전나라는 이 일을 기억할 것입니다.)", img:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/9neg.png"},
+        {t:"아닙니다, 전 안 건드렸습니다.",       char:9, type:"neu", line:"분명히 건드렸는데……. 너무해…….", img:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/9neu.png"} ] },
+  { bgChar:10, q:"신병! 무거운 건 일단 내가 들 테니까, 넌 보고 배워.",
+    a:[ {t:"아, 네……. 감사합니다…….",      char:10, type:"neu", line:"표정이 왜 그래? 어디 아파? 의무실 데려다줄까?", img:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/10neu.png"},
+        {t:"감사합니다! 강 일병님 힘 엄청 세십니다!",    char:10, type:"pos", line:"이 정도야 뭐, 별것도 아니지.", img:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/10pos.png"},
+        {t:"저도 들 수 있습니다! 이리 주십시오!",        char:10, type:"neg", line:"거봐, 내가 뭐랬어! 무리하지 말라니까. 하하하.", img:"https://raw.githubusercontent.com/yermigionic-web/ffg332/refs/heads/main/10neg.png"} ] }
+];
+
+/* 세계관: 항목 7개 (호위함 건운함 / 신병역법 세계) */
+const WORLD = [
+  { h:"개요", en:"OVERVIEW",
+    p:"우리가 아는 대한민국과 거의 같은 이 세계는, 통계가 예고한 인구 절벽 앞에서 단 하나의 다른 선택을 했다. 연간 출생아가 20만 명 아래로 내려앉고 병역자원이 반토막 나자 2030년 헌법재판소는 남성 한정 병역의무에 헌법불합치를 선고했고, 2032년 성별을 불문하는 「신병역법」이 시행됐다(복무기간 육군 18개월·해군 20개월). 만성 결원이 가장 심각했던 해군은 함정이라는 공간의 특수성 탓에 2035년부터 '함정 단위 단일성별 승조'를 채택. 그 결과 전원 여성으로 편성된 함들이 함대마다 생겨났다. 호위함 '건운함(FFG-332)'도 그중 하나다. 현재 시점은 제도 12년차인 2044년. 딸을 보내는 나라라는 논쟁은 끝나지 않았지만, 입영열차 앞의 눈물도 전역자의 예비군 욕설도 이미 일상이 됐다.",
+    ul:["2030 — 남성 한정 병역의무 헌법불합치 결정","2032 — 「신병역법」 시행, 성별 불문 징병검사 개시","2035 — 해군 '함정 단위 단일성별 승조' 원칙 채택","2044 — 제도 12년차, 여성 1기수 '32군번'이 회고 세대로"] },
+
+  { h:"직무기준제", en:"ASSIGNMENT",
+    p:"신병역법 체제의 핵심은 직무기준제다. 일률적인 절대 체력기준 대신 보직별로 '이 일을 수행할 수 있는가'를 기준으로 배치한다. 평균 근력과 상지 파워의 성차는 분명히 존재하고 함은 그것을 무시하지 않는데, 무시하면 사람이 다치기 때문이다. 그래서 계류 작업은 인원 편성과 캡스턴 절차가 개정됐고, 중량물 이송은 2인 1조와 보조구가 표준이 됐다. 반대로 좁은 빌지와 케이블 트렁크 진입, 장시간 미세작업, 냉수 생존, 장기 항해 칼로리 효율처럼 평균적으로 유리한 영역도 같은 데이터에 함께 적혀 있다. 함 안에서 '누가 어디로 들어가고 누가 어디서 당기느냐'는 편성표의 문제일 뿐. 물론 윗대가리들 의견과 현장 의견은 차이가 있다. 공식 슬로건은 '차이는 훈련과 설계로 흡수한다'지만, 현장 버전은 이렇다. <em>설계가 늦으면 케이블 타이로 흡수한다.</em>",
+    ul:["계류·양묘: 인원 편성과 캡스턴 활용 절차 개정","탄약·중량물: 2인 1조 + 이송 보조구 표준화","피복·장구 재설계 사업 10년째 진행(여전히 구형 치수 혼입)"] },
+
+  { h:"건운함", en:"SETTING",
+    p:"남해안의 군항 양도 미항(陽島彌港). 시가지와 군항이 방파제 하나를 사이에 두고 붙어, 횟집과 군장점과 PC방이 위병소 앞 한 골목에 모인 전형적인 군항 도시다. 제3해역함대 사령부가 있고, 호위함 건운함(FFG-832)은 그 예하 제32호위함전대 소속이다. 2,800톤급, 승조원 121명. 주임무는 연안 초계·대잠전·어로보호작전·수색구조. 하루는 06:00 기상으로 시작해 함상체조·청소·일과·순검으로 이어지고, 그 위에 4시간 근무·8시간 비번의 3직제 당직이 무한히 겹쳐 돈다. 침대는 3단, 커튼 한 장이 사생활의 전부. 황천 항해 때는 안전줄이 걸리고 식단은 컵라면과 건빵으로 격하되며, 멀미에 강한 자와 약한 자의 계급이 일시적으로 역전된다.",
+    ul:["출동 — 2~3주 해상작전, 다들 말수가 줄어든다","정박 — 부두 계류, 그래도 당직은 계속된다","수리창 — 정비기간, 페인트와 그라인더 소음의 나날"] },
+
+  { h:"부서 편제", en:"DEPARTMENTS",
+    p:"건운함의 뼈와 살은 여섯 갈래로 나뉜다. 함 외부 전체가 작업장인 갑판부, 어두운 전투정보실에서 눈과 귀를 갈아 넣는 전투체계부, 실수가 곧 보안사고가 되는 통신부, 가장 덥고 시끄럽고 자부심 강한 기관부, 함의 사기가 식당에서 나온다는 보급부, 그리고 종이와 도장으로 휴가 날짜를 좌우하는 행정·의무까지. 육상의 운전병에 해당하는 것은 함에서는 조타병과 정박 시 기지 차량 지원 보직이며, 수색 임무는 갑판부 단정 요원과 입항 시 항만경계 인원이 나눠 진다.",
+    ul:["갑판부 — 깡깡이·도색·계류·고속단정(RIB)·수색구조","전투체계부 — 전탐·소나·사격통제, 전투정보실(CIC)","통신부 — 안테나·케이블·암호자재 관리","기관부 — 주기관·발전기·조타·손상통제의 주축","보급부 — 식자재 검수·냉동창고·피복·조리병","행정·의무 — 서류·인사기록·의무실"] },
+
+  { h:"훈련과 일과", en:"DRILLS",
+    p:"훈련은 가끔이고 잡무는 매일이다. 갑판부는 녹을 갈고 페인트를 바르고 또 녹을 간다(바다가 매일 깎아내니까), 기관부는 기름걸레로 손바닥을 너덜너덜하게 만들고, 전투체계부는 헤드셋 선을 정리하면 그날 일과가 끝난다. 훈련 중 가장 빡센 것은 손상통제훈련이다 — 화재·파공·침수를 가정해 방화복을 입고 호스를 펴고 임시 차수판을 설치한다. 배는 침몰하면 끝이고 바다 한가운데로 소방차는 오지 않으니까, 이 훈련에서만큼은 상명하복이 부조리가 아니라 생존 장치라는 걸 가장 냉소적인 병사도 인정한다.",
+    ul:["해상기동훈련 — 멀미가 심한 인원에겐 지옥의 루프","대잠전 — 소나 청음·음문 분석의 고요한 소모전","대공전 — 전투정보실 전 좌석이 동시에 소리치는 실전형","손상통제 — 함에서 가장 빡센, 그러나 가장 정직한 훈련","생존훈련 — 겨울 훈련장의 물은 농담이 아니다"] },
+
+  { h:"위계와 관계", en:"HIERARCHY",
+    p:"상명하복은 도구다. 손상통제 현장에서 그것은 사람을 살리고, 생활관에서 그것은 종종 사람을 잡는다. 건운함에는 그 도구를 쥐는 여러 손이 공존. 명령은 명확하게 책임은 자기가 지는 권위의 손, 작업 떠넘기기와 휴가 미끼와 '폐급' 낙인으로 굴리는 부조리의 손, 그리고 좋은 게 좋은 것이라며 묵인하는 회색의 손으로 나뉜다. 한편 121명이 철판 하나를 사이에 두고 20개월을 사는 공간에서 감정은 통제 대상이 아니라 기상 현상에 가깝다. 동일 지휘계통 내 사적 관계는 금지되고 함내 애정표현은 징계 대상이지만, 규정과 현실 사이에는 넓은 회색지대가 있다. 소문은 함내에서 가장 빠른 통신수단이고, 묵인은 가장 흔한 지휘 기법이다. 누군가에게 함은 20개월짜리 감옥이고, 누군가에게는 평생 잊지 못할 사람을 만난 자리. 대부분에게는 둘 다.",
+    ul:[] },
+
+  { h:"용어 소사전", en:"GLOSSARY",
+    p:"함에는 함의 말이 있다. 같은 한국어지만 뭍에서는 통하지 않는, 철판 안에서만 자라난 어휘들.",
+    ul:["깡깡이 — 망치·그라인더로 녹을 벗기는 갑판부의 숙명","짬 — 복무 연차, 그리고 그것이 만드는 비공식 서열","순검 — 야간 점호. 관물대 상태가 그날 밤의 운명을 정한다","황천 — 거친 바다. 3급이면 식당에 사람이 없다","빌지 — 함 바닥 기름·오수 고임 공간, 작은 체구의 영역","차수판 — 침수 구멍을 막는 판, 손상통제의 상징","출동 — 해상작전 기간. 이 한마디에 모든 계획이 접힌다","폐급 — 일 못하는 인원에게 찍는 낙인. 한번 찍히면 잘 안 지워진다","새벽뱃 — 02~06시 당직. 인격이 일시적으로 변하는 시간대"] }
+];
+
+/* =========================================================================
+   ░░ 로직 영역 ░░
+   ========================================================================= */
+const $ = s => document.querySelector(s);
+const bgm = $("#bgm");
+let muted = false;
+
+function show(id){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  $(id).classList.add("active");
+}
+
+/* ---------- [1] 메인 → 시작 ---------- */
+let started = false;
+$("#scr-main").addEventListener("click", ()=>{
+  if(started) return; started = true;
+  // 깜빡임
+  $("#flash").classList.add("go");
+  // 음악은 아직 재생하지 않음 (로딩 끝난 뒤 begin()에서 시작) — 단, 제스처 시점에 미리 받아두기
+  bgm.load();
+  $("#audioCtrl").classList.add("show");
+  // 1초 내 애니메이션으로 전환
+  setTimeout(()=>{ show("#scr-anim"); startAnim(); }, 850);
+});
+
+/* ---------- 오디오 컨트롤 ---------- */
+$("#audioCtrl").addEventListener("click",(e)=>{
+  e.stopPropagation();
+  muted = !muted; bgm.muted = muted;
+  $("#audioIcon").style.opacity = muted ? .35 : 1;
+});
+
+/* ---------- [2] 쇼트 애니메이션 ---------- */
+const FRAMES = LYRICS.length; // = 17
+let animIdx = 0, animTimer = null, animPaused = false, useA = true;
+
+function paintFrame(i){
+  const front = useA ? $("#frameA") : $("#frameB");
+  const back  = useA ? $("#frameB") : $("#frameA");
+  const url = ANIM_IMAGES[i];
+  if(url){
+    front.style.backgroundImage = `url("${url}")`;
+    front.style.backgroundSize = "cover";
+    front.style.backgroundPosition = "center";
+    front.innerHTML = "";
+  } else {
+    front.style.backgroundImage = "";
+    // ※ 이미지 미입력 시 자리표시자 (github 업로드 후 ANIM_IMAGES에 URL 입력)
+    front.innerHTML = `<div class="anim-placeholder"><b>${String(i+1).padStart(2,"0")}/17</b>SHORT ANIMATION FRAME<br>쇼트 애니메이션 이미지 자리</div>`;
+  }
+  front.classList.add("show"); back.classList.remove("show");
+  useA = !useA;
+
+  // 가사
+  const ly = $("#lyric");
+  ly.innerHTML = `<span class="ln">${LYRICS[i]||""}</span>`;
+  // 진행바
+  $("#animProg").style.width = ((i+1)/FRAMES*100) + "%";
+}
+
+function startAnim(){
+  animIdx = 0; animPaused = false; useA = true;
+  // 로딩 표시
+  $("#lyric").innerHTML = '<span class="ln">LOADING…</span>';
+  $("#animProg").style.width = "0%";
+
+  // 17장 전부 미리 받아놓기 (빈 URL은 건너뜀)
+  const urls = ANIM_IMAGES.filter(u => u);
+  let loaded = 0;
+  const total = urls.length;
+
+  function begin(){
+    bgm.currentTime = 0;        // 음악을 처음으로
+    bgm.play().catch(()=>{});   // 로딩 완료 시점에 재생 시작 → 가사와 싱크
+    paintFrame(0);
+    clearInterval(animTimer);
+    animTimer = setInterval(stepAnim, FRAME_INTERVAL);
+  }
+
+  if(total === 0){ begin(); return; }   // 이미지가 하나도 없으면 그냥 시작
+
+  urls.forEach(src => {
+    const img = new Image();
+    const done = () => {
+      loaded++;
+      $("#animProg").style.width = (loaded/total*100) + "%";  // 로딩 진행바
+      if(loaded === total){ begin(); }                        // ★ 전부 받아지면 시작
+    };
+    img.onload = done;
+    img.onerror = done;   // 실패한 것도 넘어가 멈추지 않게
+    img.src = src;
+  });
+}
+function stepAnim(){
+  animIdx++;
+  if(animIdx >= FRAMES){ endAnim(); return; }
+  paintFrame(animIdx);
+}
+function endAnim(){
+  clearInterval(animTimer); animTimer = null;
+  startChoices();
+}
+
+/* 애니메이션 터치 → 일시정지 + 스킵/계속 모달 */
+$("#scr-anim").addEventListener("click",(e)=>{
+  if(e.target.closest(".skip-modal") || e.target.closest(".audio-ctrl")) return;
+  if($("#skipModal").classList.contains("on")) return;
+  // 일시정지
+  clearInterval(animTimer); animTimer = null; animPaused = true;
+  bgm.pause();
+  $("#skipModal").classList.add("on");
+});
+$("#btnResume").addEventListener("click",(e)=>{
+  e.stopPropagation();
+  $("#skipModal").classList.remove("on");
+  // 정지된 부분부터 다시 재생
+  if(animPaused){
+    bgm.play().catch(()=>{});
+    animPaused = false;
+    animTimer = setInterval(stepAnim, FRAME_INTERVAL);
+  }
+});
+$("#btnSkip").addEventListener("click",(e)=>{
+  e.stopPropagation();
+  $("#skipModal").classList.remove("on");
+  clearInterval(animTimer); animTimer = null; animPaused = false;
+  bgm.play().catch(()=>{}); // 선택지 세션에선 다시 재생
+  startChoices();
+});
+
+/* ---------- [3] 선택지 세션 ---------- */
+let qIdx = 0, reactionOpen = false;
+
+function startChoices(){
+  qIdx = 0;
+  show("#scr-choice");
+  renderQuestion(0);
+}
+function renderQuestion(i){
+  const Q = QUESTIONS[i];
+  reactionOpen = false;
+  $("#reaction").classList.remove("on");
+  $("#choiceInner").style.display = "flex";
+
+  // 배경 (캐릭터 이미지 blur) — github 업로드 후 CHARACTERS[].standing 등 활용
+  const bg = $("#choiceBg");
+  const bgUrl = CHARACTERS[Q.bgChar] && CHARACTERS[Q.bgChar].standing;
+  if(bgUrl){ bg.style.backgroundImage = `url("${bgUrl}")`; bg.classList.remove("ph"); }
+  else { bg.style.backgroundImage = ""; bg.classList.add("ph"); }
+
+  $("#qNow").textContent = String(i+1).padStart(2,"0");
+  $("#qBar").style.width = ((i)/QUESTIONS.length*100) + "%";
+  $("#qText").textContent = Q.q;
+
+  const wrap = $("#choices"); wrap.innerHTML = "";
+  Q.a.forEach((c,ci)=>{
+    const b = document.createElement("button");
+    b.className = "choice";
+    b.setAttribute("data-k", String.fromCharCode(65+ci)); // A/B/C
+    b.textContent = c.t;
+    b.addEventListener("click", ()=> chooseAnswer(i, ci));
+    wrap.appendChild(b);
+  });
+}
+
+function chooseAnswer(qi, ci){
+  const c = QUESTIONS[qi].a[ci];
+  reactionOpen = true;
+  $("#choiceInner").style.display = "none";
+
+  // 반응 이미지
+  const ri = $("#reactImg");
+  if(c.img){ ri.style.backgroundImage = `url("${c.img}")`; ri.classList.remove("ph"); }
+  else { ri.style.backgroundImage = ""; ri.classList.add("ph"); }
+
+  const ch = CHARACTERS[c.char] || {};
+  $("#reactName").textContent = (ch.name || "캐릭터");
+  $("#reactLine").textContent = c.line;
+  $("#reaction").classList.add("on");
+
+  // 효과: 긍정→렌즈플레어 / 부정→글리치 / 중립→없음
+  if(c.type === "pos"){ flareFx(); }
+  else if(c.type === "neg"){ glitchFx(); }
+}
+function flareFx(){
+  const f = $("#fxFlare"); f.classList.remove("on"); void f.offsetWidth; f.classList.add("on");
+}
+function glitchFx(){
+  const g = $("#fxGlitch"); g.classList.remove("on"); void g.offsetWidth; g.classList.add("on");
+  const fr = $("#frame"); fr.classList.remove("shake"); void fr.offsetWidth; fr.classList.add("shake");
+}
+
+/* 반응 터치 → 다음 질문 */
+$("#reaction").addEventListener("click", ()=>{
+  if(!reactionOpen) return;
+  reactionOpen = false;
+  $("#reaction").classList.remove("on");
+  qIdx++;
+  if(qIdx >= QUESTIONS.length){ openSequence(); }
+  else renderQuestion(qIdx);
+});
+
+/* ---------- OPEN SEQUENCE → 캐릭터 페이지 ---------- */
+function openSequence(){
+  show("#scr-open");
+  setTimeout(()=>{ buildDossier(); show("#scr-dossier"); }, 2300);
+}
+
+/* ---------- [4] 캐릭터 / 세계관 ---------- */
+let dossierBuilt = false;
+function buildDossier(){
+  if(dossierBuilt) return; dossierBuilt = true;
+
+  // 캐릭터 리스트(계급순 — 배열 순서 그대로)
+  const list = $("#charList");
+  CHARACTERS.forEach((c,idx)=>{
+    const item = document.createElement("div");
+    item.className = "cl-item";
+    const photoStyle = c.idPhoto ? `background-image:url('${c.idPhoto}');background-size:cover;background-position:center;` : "";
+    item.innerHTML = `
+      <div class="id-photo" style="${photoStyle}"></div>
+      <div class="cl-meta">
+        <div class="rk">${c.rank}</div>
+        <div class="nm">${c.name}</div>
+      </div>`;
+    item.addEventListener("click", ()=> selectChar(idx, item));
+    list.appendChild(item);
+  });
+
+  // 세계관 7항목
+  const wb = $("#worldBody");
+  // 인포박스(요약) — 위키 느낌
+  const ib = document.createElement("div");
+  ib.className = "infobox";
+  ib.innerHTML = `
+  <div class="ib-h">건운함 / GEONUN</div>
+  <div class="ib-row"><b>함번</b><span>FFG-832</span></div>
+  <div class="ib-row"><b>함급</b><span>2,800톤급 호위함</span></div>
+  <div class="ib-row"><b>승조원</b><span>121명 (전원 여성)</span></div>
+  <div class="ib-row"><b>소속</b><span>제3해역함대 32전대</span></div>
+  <div class="ib-row"><b>주임무</b><span>초계·대잠·구조</span></div>
+  <div class="ib-row"><b>시점</b><span>2044 (제도 12년차)</span></div>`;
+  wb.appendChild(ib);
+  WORLD.forEach((w,i)=>{
+    const sec = document.createElement("div");
+    sec.className = "w-sec";
+    let ul = "";
+    if(w.ul && w.ul.length){ ul = "<ul>" + w.ul.map(li=>`<li>${li}</li>`).join("") + "</ul>"; }
+    sec.innerHTML = `<h2><i>${String(i+1).padStart(2,"0")}</i>${w.h} <span style="font-family:var(--ff-disp);font-size:10px;letter-spacing:.2em;color:var(--silver-d)">${w.en}</span></h2><p>${w.p}</p>${ul}`;
+    wb.appendChild(sec);
+  });
+}
+
+function selectChar(idx, item){
+  document.querySelector(".char-layout").classList.add("compact");   // ★ 추가: 리스트 축소
+  document.querySelectorAll(".cl-item").forEach(el=>el.classList.remove("sel"));
+  item.classList.add("sel");
+  const c = CHARACTERS[idx];
+  // ...(이하 기존 코드 그대로)
+
+  $("#cdEmpty").style.display = "none";
+  const st = $("#standing"); st.style.display = "block";
+  if(c.standing){ st.style.backgroundImage = `url("${c.standing}")`; st.classList.remove("ph"); }
+  else { st.style.backgroundImage = ""; st.classList.add("ph"); }
+
+  const info = $("#cdInfo"); info.style.display = "flex";
+  info.innerHTML = `
+    <div class="cd-rank">${c.rank} · ${c.rankKr}</div>
+    <div class="cd-name">${c.name}</div>
+    <div class="cd-en">${c.en}</div>
+    <div class="cd-stats">
+      <span><b>SEX</b>${c.sex}</span>
+      <span><b>AGE</b>${c.age}</span>
+      <span><b>RANK</b>${c.rankKr}</span>
+    </div>
+    <div class="cd-bio">${c.bio}</div>
+    <div class="cd-quote">${c.quote}</div>`;
+}
+
+/* 탭 전환 */
+document.querySelectorAll(".tab").forEach(t=>{
+  t.addEventListener("click", ()=>{
+    document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+    document.querySelectorAll(".pane").forEach(x=>x.classList.remove("active"));
+    t.classList.add("active");
+    $("#"+t.dataset.pane).classList.add("active");
+  });
+});
+</script>
+</body>
+</html>
